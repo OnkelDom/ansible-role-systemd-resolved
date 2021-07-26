@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Dominik Lenhardt
+  description: Ansible role for configure systemd resolved
+  license: license (Apache)
+  min_ansible_version: 2.5
+  platforms:
+  - name: Ubuntu
+    versions:
+    - focal
+    - bionic
+  - name: EL
+    versions:
+    - 7
+    - 8
+  categories:
+  - system
+  - dns
+  - resolve
+  - network
+dependencies: []

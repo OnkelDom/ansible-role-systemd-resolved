@@ -1,0 +1,56 @@
+---
+#- name: get resolv.conf exists
+#  stat:
+#    path: "/etc/resolv.conf"
+#  register: __resolved_is_installed
+#  become: true
+#  tags: resolved
+
+#- name: gather currently installed version
+#  command: "/usr/bin/cat /etc/default/adguard_exporter_version"
+#  args:
+#    warn: false
+#  changed_when: false
+#  register: __adguard_exporter_current_version_output
+#  when: __adguard_exporter_is_installed.stat.exists
+#  become: true
+#  tags: adguard_exporter
+
+- name: create conf.d directory
+  file:
+    path: "/etc/systemd/resolved.conf.d"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0755
+  become: true
+  tags: resolved
+
+- name: configure /etc/systemd/resolved.conf.d/resolved.conf
+  template:
+    src: resolved.conf.j2
+    dest: /etc/systemd/resolved.conf.d/resolved.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart systemd-resolved
+  become: true
+  tags: resolved
+
+- name: remvove old resolv.conf
+  file:
+    path: "/etc/resolv.conf"
+    state: absent
+  become: true
+  tags: resolved
+
+- name: link resolv.conf to /run/systemd/resolve/resolv.conf
+  ansible.builtin.file:
+    src: /run/systemd/resolve/resolv.conf
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    state: link
+  notify: restart systemd-resolved
+  become: true
+  tags: resolved
