@@ -1,20 +1,20 @@
 ---
-#- name: get resolv.conf exists
-#  stat:
-#    path: "/etc/resolv.conf"
-#  register: __resolved_is_installed
-#  become: true
-#  tags: resolved
+- name: check /etc/systemd/resolved.conf.d/resolved.conf exists
+  stat:
+    path: "/etc/systemd/resolved.conf.d/resolved.conf"
+  register: __resolved_is_exist
+  become: true
+  tags: resolved
 
-#- name: gather currently installed version
-#  command: "/usr/bin/cat /etc/default/adguard_exporter_version"
-#  args:
-#    warn: false
-#  changed_when: false
-#  register: __adguard_exporter_current_version_output
-#  when: __adguard_exporter_is_installed.stat.exists
-#  become: true
-#  tags: adguard_exporter
+- name: check dnsstubliner is set to no
+  command: "grep -q \"DNSStubListener=no\" /etc/systemd/resolved.conf.d/resolved.conf"
+  args:
+    warn: false
+  changed_when: false
+  register: __resolved
+  when: __resolved_is_exist.stat.exists
+  become: true
+  tags: adguard_exporter
 
 - name: create conf.d directory
   file:
@@ -23,6 +23,7 @@
     owner: "root"
     group: "root"
     mode: 0755
+  when: not __resolved_is_exist.stat.exists
   become: true
   tags: resolved
 
@@ -41,6 +42,7 @@
   file:
     path: "/etc/resolv.conf"
     state: absent
+  when: not __resolved_is_exist.stat.exists
   become: true
   tags: resolved
 
@@ -51,6 +53,7 @@
     owner: root
     group: root
     state: link
+  when: not __resolved_is_exist.stat.exists
   notify: restart systemd-resolved
   become: true
   tags: resolved
