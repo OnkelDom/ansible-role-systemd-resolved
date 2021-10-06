@@ -34,6 +34,7 @@
     owner: root
     group: root
     mode: 0644
+  register: __resolved_update
   notify: restart systemd-resolved
   become: true
   tags: resolved
@@ -43,6 +44,16 @@
     path: "/etc/resolv.conf"
     state: absent
   when: not __resolved_is_exist.stat.exists
+  become: true
+  tags: resolved
+
+- name: restart systemd-resolved
+  systemd:
+    name: systemd-resolved
+    daemon_reload: yes
+    enabled: true
+    state: restarted
+  when: __resolved_update.changed
   become: true
   tags: resolved
 
